@@ -6,9 +6,9 @@ editor: visual
 
 ## HW2 Exploration
 
-Data derived from paper titled: Contrasting effects of vineyard type, soil and landscape factors on ground- versus above-ground nesting bees
+## Data
 
-https://datadryad.org/stash/dataset/doi:10.5061/dryad.h44j0zpq0
+Data derived from paper titled: Contrasting effects of vineyard type, soil and landscape factors on ground- versus above-ground nesting bees
 
 Citation: Wersebeckmann, Vera; Warzecha, Daniela; Entling, Martin H.; Ilona, Leyer (2023). Contrasting effects of vineyard type, soil and landscape factors on ground- versus above-ground nesting bees \[Dataset\]. Dryad. <https://doi.org/10.5061/dryad.h44j0zpq0>
 
@@ -18,18 +18,68 @@ library(tidyverse)
 library(chron)
 library(naniar)
 library(here)
+library(janitor)
+library(ggridges)
 
 # read in data
 # use read_csv2() for files with a separator of ;
 bees <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_species_matrix_allSR.csv"))
+
+# look at structure of bees dataframe
+str(bees)
                 
 ```
 
-You can add options to executable code like this
+## Data Cleaning
 
 ```{r}
-#| echo: false
-2 * 2
+bees_clean <- bees |> 
+  
+  # apply lower snake case to all column names
+  clean_names() |> 
+  
+  # coerce data type of site from character to factor
+  mutate(vineyard_type = as.factor(vineyard_type)) |> 
+  
+  # select only columns of interest
+  select(vineyard_type, ground_nesting_spec_nr, above_ground_spec_nr, spec_nr) |> 
+  
+  # turn nesting behavior and counts from 2 separate columns to a variable 
+  pivot_longer(cols = c(ground_nesting_spec_nr, above_ground_spec_nr), names_to = "nesting_behavior", values_to = "count") |> 
+  
+  # group by recorded nesting behavior for easier summarization
+  group_by(nesting_behavior)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+## Plots
+
+```{r}
+# boxplot faceted by nesting behavior
+ggplot(bees_clean, aes(x = vineyard_type, y = count))+
+  geom_boxplot() +
+  facet_wrap(~nesting_behavior)
+```
+
+```{r}
+# violin plot
+ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior))+
+  geom_violin()
+```
+
+```{r}
+# ridgeline plot
+ggplot(bees_clean, aes(x = count, y = vineyard_type)) +
+  geom_density_ridges(scale = 0.9)
+```
+
+-   **1.** What have you learned about your data? Have any potentially interesting patterns emerged? **(5-8 sentences)**
+
+**Some things I have learned about my data is that the data was recorded in overall counts but also recorded at a species level. I was not expecting for their to be species level data included in this exploration. Additionally, I learned that the counts for overall amount of bees were not consistent with the counts summarized by the above ground and below ground nesting columns. Also based upon the initial explorations I was expecting to see a noticeable difference in bee counts in general between the different types of vineyards, but overall the counts of species present generally remained more consistent than I expected.**
+
+-   **2.** In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)? **(8-12 sentences)**
+
+**I have made strides towards answering some questions. However, I did change my mind on which dataset to use so I now have slightly new questions. I initially decided to change datasets due to my original dataset not having as much bee data as I hoped. I found this dataset on a whim when typing in wine into DataOne as I am also taking a wine class this quarter and was interested to see what data was available around this topic. I then became interested in exploring if different vineyard types due to their differing levels of management would reflect different species and behavior of species. I believe that my exploratory plots have allowed me to get a good idea of the distribution of different nesting behaviors between the vineyard types. The Rhone Valley is a major wine producing region of the world and agriculturally intensive practices can heavily affect insect populations and behavior. I would like to potentially explore some of the pros and cons between facet wrapping the data and or using color and seeing if that allows for better visual understanding. Additionally, it might be worth switching nesting behaviors and vineyard types to see if representing the categorical variable differently makes it easier to pull insights.**
+
+-   **3.** What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. **(4-6 sentences)**
+
+**A challenge I could see with my data would be if I wanted to represent which species of bees are most present. Currently the data I have is in wide format and has 128 variables. In order to more easily represent this I would need to pivot my dataframe and this would heavily reduce the wideness, but there are a large amount of columns to pivot. Additionally, a challenge I could see with this dataset is making sure to not overly complicate the figures just to make them complicated. I tend to struggle when it comes to figures that are more simple as I want to keep making them more complicated even when the figures themselves do not need it to relay the correct amount of information.**
