@@ -1,6 +1,9 @@
 ---
 title: "HW2-exploration"
-format: html
+author: "Melissa Widas she/her"
+format: 
+  html:
+    embed-resources: true
 editor: visual
 ---
 
@@ -26,7 +29,7 @@ library(ggridges)
 bees <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_species_matrix_allSR.csv"))
 
 # look at structure of bees dataframe
-str(bees)
+# str(bees)
                 
 ```
 
