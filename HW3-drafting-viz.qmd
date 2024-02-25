@@ -1,6 +1,8 @@
 ---
 title: "HW3-drafting-viz"
-format: html
+format:
+  html:
+    embed-resources: true
 editor: visual
 ---
 
@@ -8,19 +10,27 @@ editor: visual
 
 ## Questions
 
-1.  Which Option I plan to use?
-    1.  I plan to use option 2 in regard to building a cohesive infographic-style visualization.
-2.  Restate your question(s). Has this changed at all since HW #1? If yes, how so?
-    1.  Do vineyards affect bee species?
-    2.  Does **differing vineyard types due to their differing levels of management reflect bee behavior?**
-    3.  Do these different vineyard types have different bee species that are most common?
-    4.  Where in the world does this dataset connect to?
-3.  Explain which variables from your data set(s) you will use to answer your question(s).
-4.  In HW #2, you should have created some exploratory data viz to better understand your data. You may already have some ideas of how you plan to formally visualize your data, but it's *incredibly* helpful to look at visualizations by other creators for inspiration. Find at least two data visualizations that you could (potentially) borrow / adapt pieces from. Link to them or download and embed them into your `.qmd` file, and explain which elements you might borrow (e.g. the graphic form, legend design, layout, etc.).
-    1.  https://www.cedricscherer.com/top/dataviz/
-        1.  I really like how this infographic highlights the theme of the question aiming to be answered. The theme and colors automatically makes me think of bees and allows the reader to use context clues in discerning the aim of the data.
-5.  Hand-draw your anticipated three visualizations (option 1) or infographic (option 2). Take a photo of your drawing and embed it in your rendered `.qmd` file -- **note** that these are not *exploratory* visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4.
-6.  Mock up your visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
+-   Which Option I plan to use?
+    -   I plan to use option 2 in regard to building a cohesive infographic-style visualization.
+-   Restate your question(s). Has this changed at all since HW #1? If yes, how so?
+    -   Does vineyard type affect bee species present?
+    -   Does differing vineyard types, due to their differing levels of management, change bee nesting behavior?
+    -   Do these different vineyard types have different bee species that are most common?
+    -   Where in the world does this dataset connect to?
+-   Explain which variables from your data set(s) you will use to answer your question(s).
+    -   For creating my map I used a shapefile of Germany as well as regional level shapefiles to highlight the Rheinland-Pfalz region of Germany which is where the data I have was sampled from. Doing so will provide me with the outline of Germany (germany) and the area of Rheinland-Pfalz region (rhine).
+    -   In order to compare the number of bee species present and analyze the nesting behavior I cleaned my bees dataset and after some data wrangling was able to calculate the total species count present for each winery type and then distinguish between species that next above ground and species that rest below ground. Doing so will provide me with three variables: vineyard type (which will be a factor of 3), count (number of species present), and nesting behavior (factor that is either above ground or below ground).
+    -   In order to analyze the 10 species most present for each winery type, I cleaned and joined a dataset that had the observations of species for each site and the full names of each species. After wrangling and pivoting the data I was then able to calculate the mean individuals sighted for each species and select the 10 highest means for each winery type. Doing so will provide me with three variables: vineyard type (which will be a factor of 3), mean count (which is the mean individuals of each species), and full name (which is the full name of each of the bee species).
+-   In HW #2, you should have created some exploratory data viz to better understand your data. You may already have some ideas of how you plan to formally visualize your data, but it's incredibly helpful to look at visualizations by other creators for inspiration. Find at least two data visualizations that you could (potentially) borrow / adapt pieces from. Link to them or download and embed them into your `.qmd` file, and explain which elements you might borrow (e.g. the graphic form, legend design, layout, etc.).
+    1.  [Infographic 1](https://www.cedricscherer.com/top/dataviz/)
+        1.  I really like how this infographic highlights the theme of the question aiming to be answered. The theme and colors automatically makes me think of bees and allows the reader to use context clues in discerning the aim of the data. I am going to attempt to mimic some of the theme elements and color schemes that were used in this visualization
+    2.  [Infographic 2](https://www.statista.com/chart/24898/number-of-beehives-by-region/)
+        1.  I like how this chart has generally clear and non-overwhelming background and that the infographic has a few nods to the topic of bees. I also really enjoy how clear the legend is as well as the stripped text on the charts.
+-   Hand-draw your anticipated three visualizations (option 1) or infographic (option 2). Take a photo of your drawing and embed it in your rendered `.qmd` file -- **note** that these are not exploratory visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4.
+
+![](IMG_0422.jpg)
+
+-   Mock up your visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
     -   have your data plotted (if you're experimenting with an advanced graphic form(s) that were not explicitly covered in class, we understand that this may take some more time to build; you should have as much put together as possible)
 
     -   use appropriate strategies to highlight / focus attention on a clear message
@@ -30,9 +40,17 @@ editor: visual
     -   experiment with colors and typefaces / fonts
 
     -   create a presentable / aesthetically-pleasing theme (e.g. (re)move gridlines / legends as appropriate, adjust font sizes, etc.)
-7.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
-8.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven't covered in class that you'll be learning how to use for your visualizations?
-9.  What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+
+**See Below**
+
+1.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
+    1.  I spent a large amount of time on my circular plots highlighting the top 10 species present at each winery type. I struggled with deciding the best way to label these plots and how to standardize the color scheme between them. Additionally, finding data to create the outline of Germany and the region I wanted highlighted was more time-consuming than I initially bargained for.
+2.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven't covered in class that you'll be learning how to use for your visualizations?
+    1.  I have been working with `geom_segment()` and `geom_labelsegment()` extensively for my circular visualizations, which I do not think we used in class. I have been also heavily editing the `theme()` arguments as well as `scale_fill_brewer()` and `scale_color_manual()` to establish the theme elements that I would like to be across my visualizations. Additionally I used the `geom_sf()` package in order to construct my map of Germany using `ggplot()`.
+3.  What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+    1.  I think helpful feedback would be on if the themes and stylistic choices I have made up to this point are on the right track for highlighting the different goals of each plot.
+
+### Links to Data Sources:
 
 https://www.eea.europa.eu/data-and-maps/data/eea-reference-grids-2/gis-files/germany-shapefile
 
@@ -64,17 +82,47 @@ rhine <- germany_regions |>
   filter(NAME_1 == "Rheinland-Pfalz")
 ```
 
+### Map of Germany
+
 ```{r}
 germany_map <- ggplot() +
-  geom_sf(data = germany_outline, color = "pink", fill = "pink") +
-  geom_sf(data = germany_regions, color = "blue") +
-  geom_sf(data = rhine, color = "green")
-
-
+  geom_sf(data = germany_outline, color = "#fec44f", fill = "#fec44f") +
+  geom_sf(data = rhine, color = "#662506", fill = "#662506") +
+  labs(
+    title = "Rheinland-Pfalz region of Germany"
+  ) +
+  # Customize general theme
+  theme(
+    
+    # Set default color and font family for the text
+    text = element_text(color = "gray12"),
+    
+    # Customize the text in the title, subtitle, and caption
+    plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+    
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    # Remove axis ticks and text
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    # Use gray text for the region names
+    axis.text.x = element_blank(),
+    # Move the legend to the bottom
+    legend.position = "left",
+    legend.background = element_blank()
+  ) 
+  
 germany_map
 ```
 
 ## Boxplot Visualization
+
+### Data Cleaning
 
 ```{r}
 #..........................load packages.........................
@@ -105,13 +153,53 @@ bees_clean <- bees |>
   
   # group by recorded nesting behavior for easier summarization
   group_by(nesting_behavior)
-
-# violin plot
-ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior))+
-  geom_violin()
 ```
 
-## Circular Barchart Visualization
+### Boxplots
+
+```{r}
+# violin plot
+ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior, fill = nesting_behavior)) +
+  geom_boxplot(alpha = 0.3) +
+  scale_color_manual(values = c("#d95f0e", "#993404"), labels = c("Above Ground", "Below Ground")) +
+  scale_fill_brewer(palette = "YlOrBr", labels = c("Above Ground", "Below Ground")) +
+  labs(
+    title = "Bee Nesting Behavior across 3 winery site types",
+    x = "Vineyard Type",
+    y = "Number of Bee Species Sighted",
+    fill = "Nesting Behavior",
+    colour = "Nesting Behavior"
+  ) +
+ # Customize general theme
+  theme(
+    
+    # Set default color and font family for the text
+    text = element_text(color = "gray12"),
+    
+    # Customize the text in the title, subtitle, and caption
+    plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+    
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    # Remove axis ticks and text
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    # Use gray text for the region names
+    axis.text.x = element_text(color = "gray12", size = 12),
+    # Move the legend to the bottom
+    legend.position = "left",
+    legend.background = element_blank()
+  ) 
+```
+
+## Circular Visualizations
+
+#### Data Cleaning
 
 ```{r}
 #..........................load packages.........................
@@ -121,10 +209,13 @@ library(naniar)
 library(here)
 library(janitor)
 library(ggridges)
+library(geomtextpath)
 
 # read in data
 # use read_csv2() for files with a separator of ;
 bees <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_species_matrix_allSR.csv"))
+
+bee_names <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_all_species_abbreviation.csv"))
 
 bees_species <- bees |> 
   
@@ -133,5 +224,197 @@ bees_species <- bees |>
   
   select(-c(SamplingRound, Block, Winegrower, SpecNr, Ind, GroundNestingSpecNr, GroundNestingInd, AboveGroundSpecNr, AboveGroundInd, RlSpecNr, RlInd)) |> 
   
-  pivot_longer(!c(Site_ID, VineyardType), names_to = "species", values_to = "counts")
+  pivot_longer(!c(Site_ID, VineyardType), names_to = "Abbreviation", values_to = "counts") |> 
+  
+  group_by(VineyardType, Abbreviation) |> 
+  
+  summarize(mean_count = mean(counts))  |> 
+  
+  top_n(10, mean_count)
+
+bees_species_names <- left_join(bees_species, bee_names, by = "Abbreviation") |> 
+  clean_names()
+
+```
+
+### Plotting
+
+#### Fallow circular chart
+
+```{r}
+fallow <- bees_species_names |> 
+  filter(vineyard_type == "Fallow") |> 
+  mutate(mean_count = round(mean_count, 2))
+
+fallow_chart <- ggplot(data = fallow, aes(x = reorder(full_name, desc(mean_count)), y = mean_count, fill = mean_count)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species",
+       y = "Number of Individuals per Species Sighted") +
+  scale_fill_distiller(palette = "YlOrBr",
+                       guide = "colourbar",
+                       direction = 1) +
+  coord_polar(clip = "off") +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(full_name, desc(mean_count)),
+      y = 1,
+      xend =  reorder(full_name, desc(mean_count)),
+      yend = mean_count
+    ),
+  )  + 
+  # Add labels
+  labs(
+    title = "Top 10 bee species present for a fallow winery site",
+  ) +
+  geom_labelsegment(aes(
+    label = mean_count,
+    x =  reorder(full_name, desc(mean_count)),
+    y = 0,
+    xend =  reorder(full_name, desc(mean_count)),
+    yend = max(mean_count),
+    vjust = 0.5,
+    spacing = 1),
+    color = "gray12",
+    ) +
+              # Customize general theme
+              theme(
+                
+                # Set default color and font family for the text
+                text = element_text(color = "gray12"),
+                
+                # Customize the text in the title, subtitle, and caption
+                plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+                plot.subtitle = element_text(size = 14, hjust = 0.05),
+                plot.caption = element_text(size = 10, hjust = .5),
+                
+                # Make the background white and remove extra grid lines
+                panel.background = element_rect(fill = "white", color = "white"),
+                panel.grid = element_blank(),
+                panel.grid.major.x = element_blank(),
+                # Remove axis ticks and text
+                axis.title = element_blank(),
+                axis.ticks = element_blank(),
+                axis.text.y = element_blank(),
+                # Use gray text for the region names
+                axis.text.x = element_text(color = "gray12", size = 10, hjust = 0.5, vjust = 0),
+                # Move the legend to the bottom
+                legend.position = "bottom",
+              ) +
+              guides(fill = guide_colourbar(title = "Mean Individuals Sighted"))
+
+
+fallow_chart
+```
+
+#### Terrace circular visualization
+
+```{r}
+terrace <- bees_species_names |> 
+  filter(vineyard_type == "Terrace") |> 
+    mutate(mean_count = round(mean_count, 2))
+
+terrace_chart <- ggplot(data = terrace, aes(x = reorder(full_name, desc(mean_count)), y = mean_count, fill = mean_count)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species", y = "Number of Individuals per Species Sighted") +
+  scale_fill_distiller(palette = "YlOrBr", guide = "colourbar", direction = 1) +
+  coord_polar() +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(full_name, desc(mean_count)),
+      y = 0,
+      xend =  reorder(full_name, desc(mean_count)),
+      yend = max(mean_count)
+    ),
+    linetype = "dashed",
+    color = "gray12"
+  )  + 
+  # Add labels
+  labs(
+    title = "Top 10 bee species present for a terrace winery site",
+  ) +
+  # Customize general theme
+  theme(
+    
+    # Set default color and font family for the text
+    text = element_text(color = "gray12"),
+    
+    # Customize the text in the title, subtitle, and caption
+    plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+    
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    # Remove axis ticks and text
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    # Use gray text for the region names
+    axis.text.x = element_text(color = "gray12", size = 12),
+    # Move the legend to the bottom
+    legend.position = "bottom",
+  ) +
+  guides(fill = guide_colourbar(title = "Individuals Sighted"))
+
+terrace_chart
+```
+
+#### Vertically Oriented circular visualization
+
+```{r}
+v_o <- bees_species_names |> 
+  filter(vineyard_type == "Vertically oriented") |> 
+    mutate(mean_count = round(mean_count, 2))
+
+v_o_chart <- ggplot(data = v_o, aes(x = reorder(full_name, desc(mean_count)), y = mean_count, fill = mean_count)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species", y = "Number of Individuals per Species Sighted") +
+  scale_fill_distiller(palette = "YlOrBr", guide = "colourbar", direction = 1) +
+  coord_polar() +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(full_name, desc(mean_count)),
+      y = 0,
+      xend =  reorder(full_name, desc(mean_count)),
+      yend = max(mean_count)
+    ),
+    linetype = "dashed",
+    color = "gray12"
+  )  + 
+  # Add labels
+  labs(
+    title = "Top 10 bee species present for a vertically oriented winery site",
+  ) +
+  # Customize general theme
+  theme(
+    
+    # Set default color and font family for the text
+    text = element_text(color = "gray12"),
+    
+    # Customize the text in the title, subtitle, and caption
+    plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+    
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    # Remove axis ticks and text
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    # Use gray text for the region names
+    axis.text.x = element_text(color = "gray12", size = 12),
+    # Move the legend to the bottom
+    legend.position = "bottom",
+  ) +
+  guides(fill = guide_colourbar(title = "Individuals Sighted"))
+
+v_o_chart
 ```
