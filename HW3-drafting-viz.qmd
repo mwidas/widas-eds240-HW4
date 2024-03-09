@@ -1,5 +1,6 @@
 ---
-title: "HW3-drafting-viz"
+title: "HW3 Drafting Viz"
+author: "Melissa Widas"
 format:
   html:
     embed-resources: true
@@ -46,7 +47,7 @@ editor: visual
 1.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
     1.  I spent a large amount of time on my circular plots highlighting the top 10 species present at each winery type. I struggled with deciding the best way to label these plots and how to standardize the color scheme between them. Additionally, finding data to create the outline of Germany and the region I wanted highlighted was more time-consuming than I initially bargained for.
 2.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven't covered in class that you'll be learning how to use for your visualizations?
-    1.  I have been working with `geom_segment()` and `geom_labelsegment()` extensively for my circular visualizations, which I do not think we used in class. I have been also heavily editing the `theme()` arguments as well as `scale_fill_brewer()` and `scale_color_manual()` to establish the theme elements that I would like to be across my visualizations. Additionally I used the `geom_sf()` package in order to construct my map of Germany using `ggplot()`.
+    1.  I have been working with `geom_segment()` and `geom_labelsegment()` extensively for my circular visualizations, which I do not think we used in class. I also have used a package called `scales()` in order to split the labels for my visualization as all the species are two words, and extremely long, specifically the `label_wrap()` function was used to accomplish this. I have been also heavily editing the `theme()` arguments as well as `scale_fill_brewer()` and `scale_color_manual()` to establish the theme elements that I would like to be across my visualizations. Within these I especially experimented with the palettes and direction arguments. Additionally I used the `geom_sf()` package in order to construct my map of Germany using `ggplot()`.
 3.  What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
     1.  I think helpful feedback would be on if the themes and stylistic choices I have made up to this point are on the right track for highlighting the different goals of each plot.
 
@@ -60,7 +61,7 @@ https://www.diva-gis.org/gdata
 
 ## Map Visualization
 
-```{r}
+```{r, message=FALSE}
 #..........................load packages.........................
 library(tidyverse)
 library(chron)
@@ -124,7 +125,7 @@ germany_map
 
 ### Data Cleaning
 
-```{r}
+```{r, message=FALSE}
 #..........................load packages.........................
 library(tidyverse)
 library(chron)
@@ -158,7 +159,7 @@ bees_clean <- bees |>
 ### Boxplots
 
 ```{r}
-# violin plot
+# box plot
 ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior, fill = nesting_behavior)) +
   geom_boxplot(alpha = 0.3) +
   scale_color_manual(values = c("#d95f0e", "#993404"), labels = c("Above Ground", "Below Ground")) +
@@ -201,7 +202,7 @@ ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior, f
 
 #### Data Cleaning
 
-```{r}
+```{r, message=FALSE}
 #..........................load packages.........................
 library(tidyverse)
 library(chron)
@@ -210,6 +211,7 @@ library(here)
 library(janitor)
 library(ggridges)
 library(geomtextpath)
+library(scales)
 
 # read in data
 # use read_csv2() for files with a separator of ;
@@ -253,6 +255,7 @@ fallow_chart <- ggplot(data = fallow, aes(x = reorder(full_name, desc(mean_count
   scale_fill_distiller(palette = "YlOrBr",
                        guide = "colourbar",
                        direction = 1) +
+  scale_x_discrete(labels = label_wrap(7)) +
   coord_polar(clip = "off") +
   # Lollipop shaft for mean per vineyard type
   geom_segment(
@@ -296,7 +299,7 @@ fallow_chart <- ggplot(data = fallow, aes(x = reorder(full_name, desc(mean_count
                 axis.title = element_blank(),
                 axis.ticks = element_blank(),
                 axis.text.y = element_blank(),
-                # Use gray text for the region names
+                # Use gray text for the species names
                 axis.text.x = element_text(color = "gray12", size = 10, hjust = 0.5, vjust = 0),
                 # Move the legend to the bottom
                 legend.position = "bottom",
@@ -318,7 +321,8 @@ terrace_chart <- ggplot(data = terrace, aes(x = reorder(full_name, desc(mean_cou
   geom_bar(stat = 'identity') +
   labs(x = "Bee Species", y = "Number of Individuals per Species Sighted") +
   scale_fill_distiller(palette = "YlOrBr", guide = "colourbar", direction = 1) +
-  coord_polar() +
+  scale_x_discrete(labels = label_wrap(7)) +
+  coord_polar(clip = "off") +
   # Lollipop shaft for mean per vineyard type
   geom_segment(
     aes(
@@ -353,7 +357,7 @@ terrace_chart <- ggplot(data = terrace, aes(x = reorder(full_name, desc(mean_cou
     axis.title = element_blank(),
     axis.ticks = element_blank(),
     axis.text.y = element_blank(),
-    # Use gray text for the region names
+    # Use gray text for the species names
     axis.text.x = element_text(color = "gray12", size = 12),
     # Move the legend to the bottom
     legend.position = "bottom",
@@ -374,7 +378,8 @@ v_o_chart <- ggplot(data = v_o, aes(x = reorder(full_name, desc(mean_count)), y 
   geom_bar(stat = 'identity') +
   labs(x = "Bee Species", y = "Number of Individuals per Species Sighted") +
   scale_fill_distiller(palette = "YlOrBr", guide = "colourbar", direction = 1) +
-  coord_polar() +
+  scale_x_discrete(labels = label_wrap(7)) +
+  coord_polar(clip = "off") +
   # Lollipop shaft for mean per vineyard type
   geom_segment(
     aes(
@@ -409,7 +414,7 @@ v_o_chart <- ggplot(data = v_o, aes(x = reorder(full_name, desc(mean_count)), y 
     axis.title = element_blank(),
     axis.ticks = element_blank(),
     axis.text.y = element_blank(),
-    # Use gray text for the region names
+    # Use gray text for the species names
     axis.text.x = element_text(color = "gray12", size = 12),
     # Move the legend to the bottom
     legend.position = "bottom",

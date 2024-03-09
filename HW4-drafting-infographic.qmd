@@ -1,0 +1,448 @@
+---
+title: "HW3 Drafting Viz"
+author: "Melissa Widas"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Set-Up
+
+```{r, messages = FALSE}
+#..........................load packages.........................
+library(tidyverse)
+library(chron)
+library(naniar)
+library(here)
+library(janitor)
+library(ggridges)
+library(sf)
+library(ggplot2)
+library(ggspatial)
+library(geomtextpath)
+library(scales)
+library(ggtext)
+library(stringr)
+library(patchwork)
+library(showtext)
+library(gghighlight)
+
+#..........................import fonts..........................
+# `name` is the name of the font as it appears in Google Fonts
+# `family` is the user-specified id that you'll use to apply a font in your ggpplot
+font_add_google(name = "Lobster", family = "lobster")
+font_add_google(name = "Raleway", family = "raleway")
+
+#................enable {showtext} for rendering.................
+showtext_auto()
+
+#..........................data cleaning for map visualization.........................
+# read in data
+germany_outline <- st_read(here::here("data", "DEU_adm", "DEU_adm0.shp"))
+
+germany_regions <- st_read(here::here("data", "DEU_adm", "DEU_adm1.shp"))
+
+rhine <- germany_regions |> 
+  filter(NAME_1 == "Rheinland-Pfalz")
+
+#..........................data cleaning for boxplot visualization.........................
+# use read_csv2() for files with a separator of ;
+bees <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_species_matrix_allSR.csv"))
+
+bees_clean <- bees |> 
+  
+  # apply lower snake case to all column names
+  clean_names() |> 
+  
+  # coerce data type of site from character to factor
+  mutate(vineyard_type = as.factor(vineyard_type)) |> 
+  
+  # select only columns of interest
+  select(vineyard_type, ground_nesting_spec_nr, above_ground_spec_nr, spec_nr) |> 
+  
+  # turn nesting behavior and counts from 2 separate columns to a variable 
+  pivot_longer(cols = c(ground_nesting_spec_nr, above_ground_spec_nr), names_to = "nesting_behavior", values_to = "count") |> 
+  
+  # group by recorded nesting behavior for easier summarization
+  group_by(nesting_behavior)
+
+#..........................data cleaning for circular visualizations.........................
+bee_names <- read_csv2(here::here("data", "doi_10_5061_dryad_h44j0zpq0__v20221222", "Wersebeckmann_et_al_wildbee_all_species_abbreviation.csv"))
+
+bees_species <- bees |> 
+  
+  # coerce data type of site from character to factor
+  mutate(VineyardType = as.factor(VineyardType)) |> 
+  
+  select(-c(SamplingRound, Block, Winegrower, SpecNr, Ind, GroundNestingSpecNr, GroundNestingInd, AboveGroundSpecNr, AboveGroundInd, RlSpecNr, RlInd)) |> 
+  
+  pivot_longer(!c(Site_ID, VineyardType), names_to = "Abbreviation", values_to = "counts") |> 
+  
+  group_by(VineyardType, Abbreviation) |> 
+  
+  summarize(mean_count = mean(counts))  |> 
+  
+  top_n(10, mean_count)
+
+bees_species_names <- left_join(bees_species, bee_names, by = "Abbreviation") |> 
+  clean_names()
+
+#..........................create fallow subset.........................
+fallow <- bees_species_names |> 
+  filter(vineyard_type == "Fallow") |> 
+  mutate(mean_count = round(mean_count, 2)) |> 
+  separate_wider_delim(full_name, delim = " ",
+                       names = c("first", "second"), too_many = "merge") |> 
+  mutate(first = paste0(str_sub(first, 1, 1), ".")) |> 
+  unite(abb_full, c(first, second), sep = " ")
+
+#..........................create terrace subset.........................
+terrace <- bees_species_names |> 
+  filter(vineyard_type == "Terrace") |> 
+  mutate(mean_count = round(mean_count, 2)) |> 
+  separate_wider_delim(full_name, delim = " ",
+                       names = c("first", "second"), too_many = "merge") |> 
+  mutate(first = paste0(str_sub(first, 1, 1), ".")) |> 
+  unite(abb_full, c(first, second), sep = " ")
+
+#..........................create vertically oriented subset.........................
+vo <- bees_species_names |> 
+  filter(vineyard_type == "Vertically oriented") |> 
+  mutate(mean_count = round(mean_count, 2)) |> 
+  separate_wider_delim(full_name, delim = " ",
+                       names = c("first", "second"), too_many = "merge") |> 
+  mutate(first = paste0(str_sub(first, 1, 1), ".")) |> 
+  unite(abb_full, c(first, second), sep = " ")
+```
+
+## Map Visualization
+
+```{r}
+germany_map <- ggplot() +
+  geom_sf(data = germany_outline, color = "#fec44f", fill = "#fec44f") +
+  geom_sf(data = rhine, color = "#662506", fill = "#662506") +
+  # Customize general theme
+  theme(
+
+    # Set default color and font family for the text
+    text = element_text(family = "raleway", color = "gray12"),
+
+    # Customize the text in the title, subtitle, and caption
+    plot.title = element_text(family = "lobster", face = "bold", size = 50, hjust = 0.5, color = "gray12"),
+    plot.subtitle = element_text(size = 10, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    # Remove axis ticks and text
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    # Use gray text for the region names
+    axis.text.x = element_blank(),
+    # Move the legend to the bottom
+    legend.position = "left",
+    legend.background = element_blank()
+  )  +
+  annotate("curve",
+           x = 8.2, xend = 7.5,
+           y = 51.3, yend = 50.8,
+           colour = "black", linewidth=1, alpha=1,
+           arrow=arrow()) +
+  annotate('text',
+    x = 10.2, y = 51.5,
+    label = 'Rheinland-Pfalz region \nin Germany',
+    fontface = 'bold',
+    size = 4.5,
+    family = "raleway"
+  )
+  
+germany_map
+```
+
+## Boxplot Visualization
+
+```{r}
+# box plot
+box_plot <- ggplot(bees_clean, aes(x = vineyard_type, y = count, color = nesting_behavior, fill = nesting_behavior)) +
+  geom_boxplot(alpha = 0.6) +
+  gghighlight(vineyard_type == "Vertically oriented", unhighlighted_params = list(colour = NULL, fill = NULL, alpha = 0.2)) +
+  scale_color_manual(values = c("#fe9929", "#662506"), labels = c("Above Ground", "Below Ground")) +
+  scale_fill_manual(values = c("#fec44f", "#662506"), labels = c("Above Ground", "Below Ground")) +
+  labs(
+    x = "Vineyard Type",
+    y = "Avg. Number of Bee Species Observed",
+    fill = "Nesting Behavior:",
+    colour = "Nesting Behavior:"
+  ) +
+ # Customize general theme
+  theme(
+    
+    # Set default color and font family for the text
+    text = element_text(family = "raleway", color = "gray12"),
+    
+    # Make the background white and remove extra grid lines
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray", linetype = "dashed"),
+    
+    # Update x-axis
+    axis.text.x = element_text(color = "gray12", size = 16, face = c('plain', 'plain', 'bold')),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_text(color = "gray12", size = 18, face = "bold"),
+    
+    # Update y-axis
+    axis.text.y = element_text(color = "gray12", size = 12),
+    axis.title.y = element_text(color = "gray12", size = 18, face = "bold"),
+    axis.ticks.y = element_blank(),
+    
+    # Move the legend to the bottom
+    legend.position = "top",
+    legend.background = element_blank(),
+    legend.text = element_text(color = "gray12", size = 12, face = "bold"),
+    legend.title = element_text(color = "gray12", size = 18, face = "bold"),
+    
+  ) 
+
+box_plot
+```
+
+## Circular Plots
+
+### Fallow Wineries
+
+```{r}
+
+# Adding labels to the plot
+fallow <- fallow[order(fallow$mean_count, decreasing = TRUE),]
+
+data_with_labels <- fallow |>
+  mutate(index = row_number())
+ 
+# number of labels required
+number_of_label <- nrow(data_with_labels)
+# find the angle of rotation of the label
+angle <-  -180 * (data_with_labels$index - 0.5) /number_of_label     
+ 
+# check the label alignment - right or left
+data_with_labels$hjust<-ifelse( angle < -90, 1, 0)
+# check the label angle 
+data_with_labels$angle<-ifelse(angle < -90,
+                               angle + 180, angle)
+
+count <- fallow |> 
+  distinct(breaks=abb_full, labs=paste0(abb_full, " (",mean_count,")"))
+
+
+fallow_chart <- ggplot(data = fallow, aes(x = reorder(abb_full, desc(mean_count)), y = mean_count, fill = nesting_trait)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species",
+       y = "Number of Individuals per Species Sighted",
+       fill = "Nesting Behavior:") +
+  scale_fill_manual(values = c(above.ground = "#fec44f", ground.nesting = "#662506"), labels = c("Above Ground", "Below Ground")) +
+  scale_x_discrete(labels = ~ str_wrap(as.character(count$labs), 5)) +
+  geom_hline(yintercept = 13, color = "gray", linetype = "dashed", alpha = 0.5) +
+  coord_polar(clip = "off") +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(abb_full, desc(mean_count)),
+      xend =  reorder(abb_full, desc(mean_count)),
+      yend = 13,
+    ), color = "gray", linetype = "dashed"
+  )  +
+              # Customize general theme
+              theme(
+                
+                # Set default color and font family for the text
+                text = element_text(family = "raleway", color = "gray12"),
+                
+                # Customize the text in the title, subtitle, and caption
+                plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+                plot.subtitle = element_text(size = 14, hjust = 0.05),
+                plot.caption = element_text(size = 10, hjust = .5),
+                
+                # Make the background white and remove extra grid lines
+                panel.background = element_rect(fill = "white", color = "white"),
+                panel.grid = element_blank(),
+                panel.grid.major.x = element_blank(),
+                # Remove axis ticks and text from y-axis
+                axis.text.y = element_blank(),
+                axis.title = element_blank(),
+                axis.ticks = element_blank(),
+                # Use gray text for the species names
+                axis.text.x = element_text(color = "black", face = "italic", size = 10, hjust = 0.5, vjust = 0),
+                # Move the legend to the bottom
+                legend.position = "left"
+              ) 
+
+fallow_chart
+```
+
+### Terrace Wineries
+
+```{r}
+# Adding labels to the plot
+terrace <- terrace[order(terrace$mean_count, decreasing = TRUE),]
+
+data_with_labels_t <- terrace |>
+  mutate(index_t = row_number())
+ 
+# number of labels required
+number_of_label_t <- nrow(data_with_labels_t)
+# find the angle of rotation of the label
+angle_t <-  -180 * (data_with_labels_t$index_t - 0.5) /number_of_label_t     
+ 
+# check the label alignment - right or left
+data_with_labels_t$hjust<-ifelse(angle_t < -90, 1, 0)
+# check the label angle 
+data_with_labels_t$angle_t<-ifelse(angle_t < -90,
+                               angle_t + 180, angle_t)
+
+count_t <- terrace |> 
+  distinct(breaks=abb_full, labs=paste0(abb_full, " (",mean_count,")"))
+
+
+terrace_chart <- ggplot(data = terrace, aes(x = reorder(abb_full, desc(mean_count)), y = mean_count, fill = nesting_trait)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species",
+       y = "Number of Individuals per Species Sighted",
+       fill = "Nesting Behavior:") +
+  scale_fill_manual(values = c(above.ground = "#fec44f", ground.nesting = "#662506"), labels = c("Above Ground", "Below Ground")) +
+  scale_x_discrete(labels = ~ str_wrap(as.character(count_t$labs), 5)) +
+  geom_hline(yintercept = 13, color = "gray", linetype = "dashed", alpha = 0.5) +
+  coord_polar(clip = "off") +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(abb_full, desc(mean_count)),
+      xend =  reorder(abb_full, desc(mean_count)),
+      yend = 13,
+    ), color = "gray", linetype = "dashed"
+  )  +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(abb_full, desc(mean_count)),
+      xend =  reorder(abb_full, desc(mean_count)),
+      yend = 13,
+    ), color = "gray", linetype = "dashed"
+  )  +
+              # Customize general theme
+              theme(
+                
+                # Set default color and font family for the text
+                text = element_text(family = "raleway", color = "gray12"),
+                
+                # Customize the text in the title, subtitle, and caption
+                plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+                plot.subtitle = element_text(size = 14, hjust = 0.05),
+                plot.caption = element_text(size = 10, hjust = .5),
+                
+                # Make the background white and remove extra grid lines
+                panel.background = element_rect(fill = "white", color = "white"),
+                panel.grid = element_blank(),
+                panel.grid.major.x = element_blank(),
+                # Remove axis ticks and text from y-axis
+                axis.text.y = element_blank(),
+                axis.title = element_blank(),
+                axis.ticks = element_blank(),
+                # Use gray text for the species names
+                axis.text.x = element_text(color = "black", face = "italic", size = 10, hjust = 0.5, vjust = 0),
+                # Move the legend to the bottom
+                legend.position = "none"
+              )  
+
+terrace_chart
+```
+
+### Vertically Oriented wineries
+
+```{r}
+# Adding labels to the plot
+vo <- vo[order(vo$mean_count, decreasing = TRUE),]
+
+data_with_labels_v <- vo |>
+  mutate(index_v = row_number())
+ 
+# number of labels required
+number_of_label_v <- nrow(data_with_labels_v)
+# find the angle of rotation of the label
+angle_v <-  -180 * (data_with_labels_v$index_v - 0.5) /number_of_label_v     
+ 
+# check the label alignment - right or left
+data_with_labels_v$hjust<-ifelse(angle_v < -90, 1, 0)
+# check the label angle 
+data_with_labels_v$angle_v<-ifelse(angle_v < -90,
+                               angle_v + 180, angle_v)
+
+count_v <- vo |> 
+  distinct(breaks=abb_full, labs=paste0(abb_full, " (",mean_count,")"))
+
+
+vo_chart <- ggplot(data = vo, aes(x = reorder(abb_full, desc(mean_count)), y = mean_count, fill = nesting_trait)) +
+  geom_bar(stat = 'identity') +
+  labs(x = "Bee Species",
+       y = "Number of Individuals per Species Sighted",
+       fill = "Nesting Behavior:") +
+  scale_fill_manual(values = c(above.ground = "#fec44f", ground.nesting = "#662506"), labels = c("Above Ground", "Below Ground")) +
+  scale_x_discrete(labels = ~ str_wrap(as.character(count_v$labs), 5)) +
+  geom_hline(yintercept = 13, color = "gray", linetype = "dashed", alpha = 0.5) +
+  coord_polar(clip = "off") +
+  # Lollipop shaft for mean per vineyard type
+  geom_segment(
+    aes(
+      x =  reorder(abb_full, desc(mean_count)),
+      xend =  reorder(abb_full, desc(mean_count)),
+      yend = 13,
+    ), color = "gray", linetype = "dashed"
+  )  +
+              # Customize general theme
+              theme(
+                
+                # Set default color and font family for the text
+                text = element_text(family = "raleway", color = "gray12"),
+                
+                # Customize the text in the title, subtitle, and caption
+                plot.title = element_text(face = "bold", size = 25, hjust = 0.5),
+                plot.subtitle = element_text(size = 14, hjust = 0.05),
+                plot.caption = element_text(size = 10, hjust = .5),
+                
+                # Make the background white and remove extra grid lines
+                panel.background = element_rect(fill = "white", color = "white"),
+                panel.grid = element_blank(),
+                panel.grid.major.x = element_blank(),
+                # Remove axis ticks and text from y-axis
+                axis.text.y = element_blank(),
+                axis.title = element_blank(),
+                axis.ticks = element_blank(),
+                # Use gray text for the species names
+                axis.text.x = element_text(color = "black", face = "italic", size = 14, hjust = 0.5, vjust = 0),
+                # Move the legend to the bottom
+                legend.position = "none"
+              ) 
+
+vo_chart
+```
+
+```{r}
+top_panel <- (germany_map + plot_spacer() +
+                plot_layout(widths = c(1.5, 3), guides = "collect")) +
+  plot_annotation(
+    title = 'Feeling Buzzed',
+    theme = theme(
+      plot.title = element_text(family = "lobster", face = "bold", size = 50, hjust = 0.5, color = "gray12"))) +
+  plot_annotation(
+    subtitle = "Exploring how bee behavior and presence is affected by vineyard type \n in a wine-producing region in Germany",
+    theme = theme(plot.subtitle = element_text(family = "raleway", face = "bold", size = 14, hjust = 0.5, color = "gray12")))
+
+top_panel
+```
+
+vertically oriented:
+
+https://www.taylor.pt/en/what-is-port-wine/the-douro-valley/vineyard-landscaping
